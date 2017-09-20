@@ -7,7 +7,7 @@ import getDisplayName from 'react-display-name';
 import hoist from 'hoist-non-react-statics';
 import { noop, intBetween, getCoords } from './util';
 
-const DEFAULT_BUFFER = 150;
+const DEFAULT_BUFFER = 350;
 
 export function createHorizontalStrength(_buffer) {
   return function defaultHorizontalStrength({ x, w, y, h }, point) {
@@ -52,7 +52,6 @@ export const defaultVerticalStrength = createVerticalStrength(DEFAULT_BUFFER);
 
 export default function createScrollingComponent(WrappedComponent) {
   class ScrollingComponent extends Component {
-
     static displayName = `Scrolling(${getDisplayName(WrappedComponent)})`;
 
     static propTypes = {
@@ -86,19 +85,19 @@ export default function createScrollingComponent(WrappedComponent) {
 
     componentDidMount() {
       this.container = findDOMNode(this.wrappedInstance);
-      this.container.addEventListener('dragover', this.handleEvent);
+      this.container.addEventListener('mousemove', this.handleEvent);
       // touchmove events don't seem to work across siblings, so we unfortunately
       // have to attach the listeners to the body
       window.document.body.addEventListener('touchmove', this.handleEvent);
 
       this.clearMonitorSubscription = this.context
-          .dragDropManager
-          .getMonitor()
-          .subscribeToStateChange(() => this.handleMonitorChange());
+        .dragDropManager
+        .getMonitor()
+        .subscribeToStateChange(() => this.handleMonitorChange());
     }
 
     componentWillUnmount() {
-      this.container.removeEventListener('dragover', this.handleEvent);
+      this.container.removeEventListener('mouseover', this.handleEvent);
       window.document.body.removeEventListener('touchmove', this.handleEvent);
       this.clearMonitorSubscription();
       this.stopScrolling();
@@ -124,13 +123,13 @@ export default function createScrollingComponent(WrappedComponent) {
 
     attach() {
       this.attached = true;
-      window.document.body.addEventListener('dragover', this.updateScrolling);
+      window.document.body.addEventListener('mousemove', this.updateScrolling);
       window.document.body.addEventListener('touchmove', this.updateScrolling);
     }
 
     detach() {
       this.attached = false;
-      window.document.body.removeEventListener('dragover', this.updateScrolling);
+      window.document.body.removeEventListener('mousemove', this.updateScrolling);
       window.document.body.removeEventListener('touchmove', this.updateScrolling);
     }
 
@@ -140,7 +139,6 @@ export default function createScrollingComponent(WrappedComponent) {
       const { left: x, top: y, width: w, height: h } = this.container.getBoundingClientRect();
       const box = { x, y, w, h };
       const coords = getCoords(evt);
-
       // calculate strength
       this.scaleX = this.props.horizontalStrength(box, coords);
       this.scaleY = this.props.verticalStrength(box, coords);
